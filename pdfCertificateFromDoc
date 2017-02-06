@@ -1,0 +1,49 @@
+// Global variables 
+var docTemplate = "1tX8zeMt3OyQpwIjYV3VeijWz_H08SKPsQxUsvTZAp3A"; // Replace this with your google document ID.
+var docName     = "Certificate Of Participation"; //The name of the attached pdf which is later appended by the name of the recipient.
+function dummy_onFormSubmit() {
+  var dataRange = SpreadsheetApp.getActiveSheet().getDataRange()
+  var data = dataRange.getValues();
+  var headers = data[0];
+  // Start at row 1, skipping headers in row 0
+  for (var row=1; row < data.length; row++) {
+    var e = {};
+    e.values = data[row];
+    e.range = dataRange.offset(row,0,1,data[0].length);
+    e.namedValues = {};
+    // Loop through headers to create namedValues object
+    for (var col=0; col<headers.length; col++) {
+      e.namedValues[headers[col]] = e.values[col];
+    }
+    // Pass the simulated event to onFormSubmit
+    onFormSubmit(e);
+  }
+}
+function onFormSubmit(e) { // add an onsubmit trigger
+// Full name and email address values come from the spreadsheet form
+   var email_address = e.values[2];
+   var Name     = e.values[1];
+// Get document template, copy it as a new temp doc, and save the Doc’s id
+   var copyId = DriveApp.getFileById(docTemplate)
+                .makeCopy(docName+' for '+Name)
+                .getId();
+// Open the temporary document
+   var copyDoc = DocumentApp.openById(copyId);
+// Get the document’s body section
+   var copyBody = copyDoc.getActiveSection();
+// Replace place holder keys,  
+   copyBody.replaceText('keyName',Name);
+   var todaysDate = Utilities.formatDate(new Date(), "GMT", "MM/dd/yyyy"); 
+   copyBody.replaceText('keyTodaysDate', todaysDate);
+// Save and close the temporary document
+   copyDoc.saveAndClose();
+// Convert temporary document to PDF by using the getAs blob conversion
+   var pdf = DriveApp.getFileById(copyId).getAs("application/pdf"); 
+// Attach PDF and send the email
+   var subject = "Congratulations! Certificate Of Participation";
+   var body    = "Congratulations " +Name + ", you have earned this certificate !" +
+                 " Your certificate for #hack4good 0.6: hack against catastrophic climate change is attached.";
+   MailApp.sendEmail(email_address, subject, body, {htmlBody: body, attachments: pdf}); 
+// Delete temp file
+   DriveApp.getFileById(copyId).setTrashed(true);
+}
