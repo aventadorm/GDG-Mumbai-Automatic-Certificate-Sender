@@ -1,0 +1,39 @@
+function sendEmails() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var startRow = 1;  // First row of data to process
+  var numRows = 6;   // Number of rows to process
+  // Fetch the range of cells A2:B3
+  var dataRange = sheet.getRange(startRow, 1, numRows, 1);
+  var data = dataRange.getValues();
+  
+  var htmlBody = HtmlService.createHtmlOutputFromFile('NGOMail').getContent();
+  var imageURL = "http://oi63.tinypic.com/2lcmhd5.jpg";
+  var imageBlob = UrlFetchApp
+                          .fetch(imageURL)
+                          .getBlob()
+                          .setName("imageBlob");
+  // Fetch the range of cells A2:B3
+  var dataRange = sheet.getRange(startRow, 1, numRows, 1);
+  var file = DriveApp.getFileById('0Bx0U2CvhiduOVjRqaDhpRUhGMWM');
+  // Fetch values for each row in the Range.
+  var data = dataRange.getValues();
+  for (i in data) {
+    var row = data[i];
+    var emailAddress = row[0];  // First column
+    var message = "";     
+    var subject = "Invitation for collaboration";
+    MailApp.sendEmail(emailAddress, subject, message, {htmlBody:htmlBody,cc:
+       "saheel.mhapsekar@gmail.com,jeetpadhya1992@gmail.com,beriwal.tushar@gmail.com,neha.nirulkar@gmail.com,jatin1malhotra@gmail.com",
+                                                       inlineImages:
+                                                       {
+                                                         imageLogo: imageBlob
+                                                       }});
+ 
+  }
+ 
+}
+
+
+
+
+
